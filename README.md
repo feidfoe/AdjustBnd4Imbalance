@@ -36,7 +36,7 @@ Baseline+RS| **27.02** | *21.36* | *17.16* | *13.46* | 11.86 | *6.32*
 WVN+RS     | *27.23* | **20.17** | **16.80** | **12.76** | **10.71** | **6.29** 
 
 
-2. Validation error on Long-Tailed CIFAR100
+2. *Validation error* on Long-Tailed CIFAR100
 
 Imbalance|200|100|50|20|10|1
 :---:|:---:|:---:|:---:|:---:|:---:|:---:
