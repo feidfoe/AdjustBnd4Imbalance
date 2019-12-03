@@ -57,9 +57,10 @@ The image only provides basic libraries such as NumPy or PIL.
 
 WVN is implemented on ResNet architecture only.
 
-### Contact
-[Byungju Kim](https://feidfoe.github.io/) (byungju.kim@kaist.ac.kr)
 
 #### Baseline repository
 This repository is forked and modified from [original repo](https://github.com/bearpaw/pytorch-classification).
 
+
+### Contact
+[Byungju Kim](https://feidfoe.github.io/) (byungju.kim@kaist.ac.kr)
