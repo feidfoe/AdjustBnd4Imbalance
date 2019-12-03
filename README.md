@@ -1,5 +1,5 @@
 # Adjusting Decision Boundary for Class Imbalanced Learning
-This repository contains PyTorch implementation of WVN-RS.
+This repository is the official PyTorch implementation of WVN-RS.
 
 
 ## Requirements
