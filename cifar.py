@@ -190,6 +190,7 @@ def main():
                     dropRate=args.drop,
                 )
     elif args.arch.endswith('resnet'):
+        print("Use Weight Vector Normalization")
         model = models.__dict__[args.arch](
                     num_classes=num_classes,
                     depth=args.depth,

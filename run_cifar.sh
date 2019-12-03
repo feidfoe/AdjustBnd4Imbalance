@@ -12,8 +12,8 @@ imb=100
 ExpName=${dataset}_${arch}${depth}_imb${imb}
 
 
-TRAIN=false
-EVAL=true
+TRAIN=true
+EVAL=false
 
 
 
@@ -29,6 +29,7 @@ NV_GPU=${GPUID} nvidia-docker run -v `pwd`:`pwd` \
                   python cifar.py -a ${arch} \
                                   --depth $depth \
                                   --imbalance $imb \
+                                  --WVN \
                                   --checkpoint checkpoints/${ExpName}
 fi
 
