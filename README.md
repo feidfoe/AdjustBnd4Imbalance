@@ -17,7 +17,9 @@ They are available [here](https://www.cs.toronto.edu/~kriz/cifar.html).
 
 ## How to use
 Run the shell script.
-
+```
+bash run_cifar.sh
+```
 
 
 ## Notes
