@@ -1,8 +1,8 @@
 #!/bin/bash
 
 GPUID=0
-dataset_path=~/bj/dataset/
-checkpoint_path=~/bj/checkpoint/AdjustBnd
+dataset_path=<path/to/dataset>
+checkpoint_path=<path/to/checkpoint>
 
 dataset=cifar10
 arch=resnet
@@ -36,7 +36,6 @@ fi
 
 if $EVAL; then
 CKPT=checkpoints/${ExpName}/checkpoint.pth.tar
-#CKPT=checkpoints/${ExpName}/model_best.pth.tar
 NV_GPU=${GPUID} nvidia-docker run -v `pwd`:`pwd` \
                   -v ${dataset_path}:`pwd`/data/ \
                   -v ${checkpoint_path}:`pwd`/checkpoints/ \
