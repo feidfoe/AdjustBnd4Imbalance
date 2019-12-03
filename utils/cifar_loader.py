@@ -13,7 +13,8 @@ import torchvision.datasets as datasets
 
 
 class CIFARLoader(Dataset):
-    def __init__(self, root='./data', train=True, transform=None):
+    def __init__(self, root='./data', train=True, 
+                       imbalance=1, transform=None):
         self.T = transform
         dataset = root.split('/')[-1]
 
@@ -43,9 +44,23 @@ class CIFARLoader(Dataset):
                     self.label.extend(entry['fine_labels'])
 
         data = np.vstack(self.data).reshape(-1,3,32,32)
-        self.images = data.transpose((0,2,3,1)) #NHWC
-        self.labels = np.array(self.label)
+        data = data.transpose((0,2,3,1)) #NHWC
+        labels = np.array(self.label)
 
+        n_class = np.max(labels) + 1
+        img_max = data.shape[0] // n_class
+        imb_factor = 1. / imbalance
+        img_list, lbl_list = [], []
+        for i in range(n_class):
+            idx = np.squeeze(np.argwhere(labels == i))
+            img = data[idx]
+            lbl = labels[idx]
+            num_sample = int(img_max * (imb_factor**(i/(n_class - 1))))
+            img_list.append(img[:num_sample])
+            lbl_list.append(lbl[:num_sample])
+        
+        self.images = np.concatenate(img_list)
+        self.labels = np.concatenate(lbl_list)
 
 
     def __getitem__(self,index):

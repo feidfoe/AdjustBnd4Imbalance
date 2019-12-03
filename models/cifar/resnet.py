@@ -7,6 +7,7 @@ and
 https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
 (c) YANG, Wei
 '''
+import torch
 import torch.nn as nn
 import math
 
@@ -92,7 +93,7 @@ class Bottleneck(nn.Module):
 
 class ResNet(nn.Module):
 
-    def __init__(self, depth, num_classes=1000, block_name='BasicBlock'):
+    def __init__(self, depth, num_classes=1000, block_name='BasicBlock', WVN=False):
         super(ResNet, self).__init__()
         # Model type specifies number of layers for CIFAR-10 model
         if block_name.lower() == 'basicblock':
@@ -116,7 +117,12 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 32, n, stride=2)
         self.layer3 = self._make_layer(block, 64, n, stride=2)
         self.avgpool = nn.AvgPool2d(8)
-        self.fc = nn.Linear(64 * block.expansion, num_classes)
+        self.fc = nn.Linear(64 * block.expansion, num_classes, bias=False)
+
+        if WVN:
+            self.fc.register_backward_hook(self.__WVN__)
+
+
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -125,6 +131,12 @@ class ResNet(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
+
+    def __WVN__(self, module, grad_input, grad_output):
+        W = module.weight.data
+        W_norm = W / torch.norm(W, p=2, dim=1, keepdim=True)
+
+        module.weight.data.copy_(W_norm)
 
     def _make_layer(self, block, planes, blocks, stride=1):
         downsample = None

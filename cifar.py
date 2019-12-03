@@ -34,8 +34,10 @@ parser = argparse.ArgumentParser(description='PyTorch CIFAR10/100 Training')
 parser.add_argument('-d', '--dataset', default='cifar10', type=str)
 parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 8)')
+parser.add_argument('--imbalance',     default=1, type=int,
+                    help='imbalance factor for cifar dataset')
 # Optimization options
-parser.add_argument('--epochs', default=300, type=int, metavar='N',
+parser.add_argument('--epochs', default=180, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
@@ -47,7 +49,7 @@ parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--drop', '--dropout', default=0, type=float,
                     metavar='Dropout', help='Dropout ratio')
-parser.add_argument('--schedule', type=int, nargs='+', default=[150, 225],
+parser.add_argument('--schedule', type=int, nargs='+', default=[80, 150],
                     help='Decrease learning rate at these epochs.')
 parser.add_argument('--gamma', type=float, default=0.1, 
                     help='LR is multiplied by gamma on schedule.')
@@ -56,7 +58,7 @@ parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
 parser.add_argument('--weight-decay', '--wd', default=5e-4, type=float,
                     metavar='W', help='weight decay (default: 1e-4)')
 # Checkpoints
-parser.add_argument('-c', '--checkpoint', default='checkpoint', 
+parser.add_argument('-c', '--checkpoint', default='checkpoints', 
                     type=str, metavar='PATH',
                     help='path to save checkpoint (default: checkpoint)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH',
@@ -78,6 +80,10 @@ parser.add_argument('--growthRate', type=int, default=12,
                     help='Growth rate for DenseNet.')
 parser.add_argument('--compressionRate', type=int, default=2, 
                     help='Compression Rate (theta) for DenseNet.')
+parser.add_argument('--WVN', dest='wvn', action='store_true',
+                    help='whether to use WVN or not')
+parser.add_argument('--RS',  default=0.1, type=float,
+                    help='gamma for weight re-scaling')
 # Miscs
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 parser.add_argument('--evaluate', dest='evaluate', action='store_true',
@@ -145,6 +151,7 @@ def main():
     data_path = os.path.join('./data',args.dataset)
     trainset = utils.cifar_loader.CIFARLoader(root=data_path, 
                                               train=True,
+                                              imbalance=args.imbalance,
                                               transform=transform_train)
     trainloader = data.DataLoader(trainset, batch_size=args.train_batch, 
                                   shuffle=True, num_workers=args.workers)
@@ -187,6 +194,7 @@ def main():
                     num_classes=num_classes,
                     depth=args.depth,
                     block_name=args.block_name,
+                    WVN=args.wvn,
                 )
     else:
         model = models.__dict__[args.arch](num_classes=num_classes)
@@ -220,7 +228,28 @@ def main():
         print('\nEvaluation only')
         test_loss, test_acc = test(testloader, model, criterion, 
                                    start_epoch, use_cuda)
-        print(' Test Loss: %.8f, Test Acc: %.2f%%' % (test_loss, test_acc))
+        print('[w/o RS] Test Loss: %.8f, Test Acc: %.2f%%' % (test_loss, test_acc))
+
+        current_state = model.state_dict()
+        W = current_state['module.fc.weight']
+
+        imb_factor = 1. / args.imbalance
+        img_max = 50000/num_classes
+        num_sample = [img_max * (imb_factor**(i/(num_classes - 1))) \
+                         for i in range(num_classes)]
+
+        ns = [ float(n) / max(num_sample) for n in num_sample ]
+        ns = [ n**args.RS for n in ns ]
+        ns = torch.FloatTensor(ns).unsqueeze(-1).cuda()
+        new_W = W / ns
+
+        current_state['module.fc.weight'] = new_W
+        model.load_state_dict(current_state)
+
+        test_loss, test_acc = test(testloader, model, criterion, 
+                                   start_epoch, use_cuda)
+        print('[w/  RS] Test Loss: %.8f, Test Acc: %.2f%%' % (test_loss, test_acc))
+
         return
 
     # Train and val
@@ -343,7 +372,7 @@ def test(testloader, model, criterion, epoch, use_cuda):
         end = time.time()
     return (losses.avg, top1.avg)
 
-def save_checkpoint(state, is_best, checkpoint='checkpoint', 
+def save_checkpoint(state, is_best, checkpoint='checkpoints', 
                     filename='checkpoint.pth.tar'):
     filepath = os.path.join(checkpoint, filename)
     torch.save(state, filepath)

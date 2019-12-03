@@ -1,50 +1,54 @@
 #!/bin/bash
 
-GPUID=1
+GPUID=0
 dataset_path=~/bj/dataset/
-checkpoint_path=~/bj/checkpoint/pytorch-cls
+checkpoint_path=~/bj/checkpoint/AdjustBnd
 
-
-dataset=CIFAR10
+dataset=cifar10
 arch=resnet
 depth=32
+imb=100
 
-TRAIN=true
-EVAL=false
+ExpName=${dataset}_${arch}${depth}_imb${imb}
+
+
+TRAIN=false
+EVAL=true
+
+
 
 if $TRAIN; then 
-ExpName=${dataset}_${arch}_${depth}
 NV_GPU=${GPUID} nvidia-docker run -v `pwd`:`pwd` \
                   -v ${dataset_path}:`pwd`/data/ \
                   -v ${checkpoint_path}:`pwd`/checkpoints/ \
                   -w `pwd` \
                   --rm -it \
                   --ipc=host \
-                  --name ${ExpName}'_gpu'${GPUID} \
+                  --name ${ExpName} \
                   feidfoe/pytorch:v.2 \
                   python cifar.py -a ${arch} \
                                   --depth $depth \
-                                  --epoch 300 \
-                                  --schedule 150 250 \
-                                  --gamma 0.1 \
-                                  --wd 5e-4 \
-                                  --checkpoint checkpoints/${ExpName} \
+                                  --imbalance $imb \
+                                  --checkpoint checkpoints/${ExpName}
 fi
 
 
 if $EVAL; then
-ExpName=${dataset}_${arch}_${depth}
 CKPT=checkpoints/${ExpName}/checkpoint.pth.tar
+#CKPT=checkpoints/${ExpName}/model_best.pth.tar
 NV_GPU=${GPUID} nvidia-docker run -v `pwd`:`pwd` \
                   -v ${dataset_path}:`pwd`/data/ \
                   -v ${checkpoint_path}:`pwd`/checkpoints/ \
                   -w `pwd` \
                   --rm -it \
                   --ipc=host \
-                  --name ${ExpName}'_gpu'${GPUID} \
+                  --name ${ExpName} \
                   feidfoe/pytorch:v.2 \
                   python cifar.py -a ${arch} \
                                   --depth $depth \
+                                  --imbalance $imb \
+                                  --RS 0.5 \
+                                  --checkpoint checkpoints/${ExpName} \
                                   --resume ${CKPT} \
                                   --evaluate
 
