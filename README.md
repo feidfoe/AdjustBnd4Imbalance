@@ -1,6 +1,8 @@
 # Adjusting Decision Boundary for Class Imbalanced Learning
 This repository is the official PyTorch implementation of WVN-RS.
 
+The paper will soon be available at arXiv.
+
 
 ### Requirements
 1. NVIDIA docker : Docker image will be pulled from cloud.
