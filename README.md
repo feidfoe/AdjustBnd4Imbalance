@@ -1,5 +1,5 @@
 # Adjusting Decision Boundary for Class Imbalanced Learning
-This repository is the official PyTorch implementation of WVN-RS, introduced in [Adjusting Decision Boundary for Class Imbalanced Learning](https://arxiv.org/abs/1912.01857).
+This repository is the official PyTorch implementation of WVN-RS, introduced in [Adjusting Decision Boundary for Class Imbalanced Learning](https://ieeexplore.ieee.org/document/9081988).
 
 
 ### Requirements
@@ -57,6 +57,17 @@ The image only provides basic libraries such as NumPy or PIL.
 
 WVN is implemented on ResNet architecture only.
 
+#### BibTeX for Citation
+```
+@ARTICLE{9081988,
+  author={B. {Kim} and J. {Kim}},
+  journal={IEEE Access}, 
+  title={Adjusting Decision Boundary for Class Imbalanced Learning}, 
+  year={2020},
+  volume={8},
+  number={},
+  pages={81674-81685},}
+```
 
 #### Baseline repository
 This repository is forked and modified from [original repo](https://github.com/bearpaw/pytorch-classification).
